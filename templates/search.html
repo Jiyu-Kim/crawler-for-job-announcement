@@ -6,10 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Scrapper</title>
     <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
+    <script src="https://kit.fontawesome.com/31e0fea1b0.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <main class="container">
-        <h1>Search Results for "{{keyword}}":</h1>
+        <hgroup>
+            <h1>Search Results for "{{keyword}}":</h1>
+            <br/>
+            <br/>
+            <div>
+                <i class="fa-solid fa-file-arrow-down fa-lg"></i>
+                <a target="_blank" href="/export?keyword={{keyword}}">Export to file</a>
+            </div>
+            <br/>
+            <div>
+                <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                <a href="/">Go search again</a>
+            </div>
+        </hgroup>
+        <br/>
+        <h4>There are <strong>{{num_job}}</strong> jobs for you.</h4>
         <figure><table role="grid">
             <thead>
                 <tr>
@@ -23,10 +39,10 @@
             <tbody>
                 {% for job in jobs %}
                 <tr>
-                    <td>{{job.position}}</td> 
+                    <td>{{job.title}}</td> 
                     <td>{{job.company}}</td> 
-                    <td>{{job.kind}}</td> 
-                    <td>{{job.region}}</td> 
+                    <td>{{job.job_type}}</td> 
+                    <td>{{job.location}}</td> 
                     <td><a href={{job.link}} target="_blank">Apply now&rarr;</a></td>
                 </tr>
                 {% endfor %}
