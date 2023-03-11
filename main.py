@@ -1,36 +1,51 @@
-from requests import get
-from bs4 import BeautifulSoup
+from flask import Flask
+from flask import render_template
+from flask import request # requests는 client가 보낸 request에 대한 정보에 접근할 수 있게 해준다.
+from flask import redirect
+from extractors.indeed import extract_indeed_jobs
 from extractors.wwr import extract_wwr_jobs
-from extractors.programmers import extract_programmers_jobs
 
-"""
-#we work remotely > wwr.csv
-keyword = "python"
 
-wwr = extract_wwr_jobs(keyword)
+app = Flask("JobScrpper")
 
-#Create file
-file_name_for_wwr = "wwr"
-file = open(f"{keyword}.csv", "w", encoding="utf-8")
-file.write("position, company, kind, region, url\n")
+db = {}
 
-for job in wwr:
-    file.write(f"{job['position']},{job['company']},{job['kind']},{job['kind']},{job['region']},{job['url']}\n")
+@app.route("/") # decorator(syntatic sugar)
+def home():
+    return render_template("home.html") # 변수 name을 home.html에 보낸다.
+
+
+@app.route("/search")
+def search():
+    #print(request.args) #ImmutableMultiDict([('keyword', 'python')])
+    keyword = request.args.get("keyword")
+    if keyword == None or keyword == "":
+        print("Go home")
+        return redirect("/")
+    else:
+        print("Start Crawling")
+        if keyword.lower() in db:
+            jobs = db[keyword.lower()]
+        else:
+            indeed = extract_indeed_jobs(keyword.lower())
+            wwr = extract_wwr_jobs(keyword.lower())
+            jobs = indeed + wwr # list
+            db[keyword.lower()] = jobs # Insert Data into DB
+        return render_template("search.html", keyword=keyword, jobs=jobs)
     
-file.close()
-"""
+@app.route("/export")
+def export():
+    keyword = request.args.get("keyword")
+    if keyword == None or keyword == "":
+        return redirect("/")
+    else:
+        if keyword is not db:
+            return redirect(f"/search?keyword={keyword}")
 
-#programmers > programmers.csv
-page_num = 103
-programmers = extract_programmers_jobs(page_num)
 
-file_name_for_programmers = "programmers"
-with open(f"{file_name_for_programmers}_{page_num}.csv", "w", encoding='utf-8') as file:
-    #header 작성하기
-    file.write("name, response_speed, company_link, company_name, position, end_date, job_type, experience, salary, location, tech_stacks\n")
+app.run("0.0.0.0", port=3000) # allow all inboud traffic from 0.0.0.0(internet)
 
-    for job in programmers:
-        file.write(f"{job['name']},{job['response_speed']},{job['company_link']},{job['company_name']},{job['position']},{job['end_date']},{job['job_type']},{job['experience']},{job['salary']},{job['location']},{job['tech_stacks']}\n")
+
 
 
 

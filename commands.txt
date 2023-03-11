@@ -1,0 +1,10 @@
+pip install -t lib -r requirements.txt
+cd lib
+zip -r9 ../deployment_package.zip .
+cd ..
+zip -g deployment_package.zip main.py
+zip -g deployment_package.zip extractors/programmers.py
+
+
+next_page_btn = 'ul.pagination > li:last-child > span.page-link'
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, next_page_btn))).click()

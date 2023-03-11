@@ -36,15 +36,13 @@ def extract_programmers_jobs(page_num):
 
     html = driver.page_source
     soup = BeautifulSoup(html, "html.parser")
-    position_links = ["https://career.programmers.co.kr" + position_link['href'] for position_link in soup.find_all("a", class_="position-link")] # 채용 공고문의 링크를 저장하는 리스트
+    post_urls = ["https://career.programmers.co.kr" + position_link['href'] for position_link in soup.find_all("a", class_="position-link")] # 채용 공고문의 링크를 저장하는 리스트
 
-    for current_page in range(page_num - 1):
+    for _ in range(page_num - 1):
         #다음 페이지로 이동
-        #next_page_btn = driver.find_element(By.XPATH, '//*[@id="tab_position"]/div[3]/ul/li[9]/span')
         next_page_btn = 'ul.pagination > li:last-child'
         #print(next_page_btn.is_enabled())
         #driver.implicitly_wait(10)
-        #next_page_btn.click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, next_page_btn))).click()
         #next_page_btn.send_keys(Keys.ENTER)
         #driver.execute_script("arguments[0].click();", next_page_btn)
@@ -55,30 +53,25 @@ def extract_programmers_jobs(page_num):
 
         html = driver.page_source
         soup = BeautifulSoup(html, "html.parser")
-        position_links = position_links + ["https://career.programmers.co.kr" + position_link['href'] for position_link in soup.find_all("a", class_="position-link")] 
+        post_urls = post_urls + ["https://career.programmers.co.kr" + position_link['href'] for position_link in soup.find_all("a", class_="position-link")] 
 
-    num = 1
-    for item in position_links:
-        print(f"{num}:{item}")
-        num += 1
 
     #3. 2에서 크롤링한 공고문의 링크를 각각 들어가서 원하는 데이터를 크롤링한다.
     results = []
-    for position_link in position_links:
-        driver.get(position_link)
+    for post_url in tqdm(post_urls):
+        driver.get(post_url)
         driver.implicitly_wait(3)
-        #time.sleep(5)
 
         html = driver.page_source
         soup = BeautifulSoup(html, "html.parser")
 
         #결측값 대비
-        name, response_speed, company_link, company_name, position, end_date, job_type, experience, salary, location = "None", "None", "None", "None", "None", "None", "None", "None", "None", "None"
+        title, response_speed, company_link, company, position, end_date, job_type, experience, salary, location = "None", "None", "None", "None", "None", "None", "None", "None", "None", "None"
         tech_stacks = []
 
         #element가 없을 경우 발생하는 에러 처리
         try:
-            name = driver.find_element(By.XPATH, '//*[@id="career-app-legacy"]/div/div[1]/div[1]/header/div/div[2]/div/h2').text
+            title = driver.find_element(By.XPATH, '//*[@id="career-app-legacy"]/div/div[1]/div[1]/header/div/div[2]/div/h2').text
         except:
             pass
 
@@ -93,7 +86,7 @@ def extract_programmers_jobs(page_num):
             pass
 
         try:
-            company_name = driver.find_element(By.XPATH, '//*[@id="career-app-legacy"]/div/div[1]/div[1]/header/div/div[2]/h4/a').text
+            company = driver.find_element(By.XPATH, '//*[@id="career-app-legacy"]/div/div[1]/div[1]/header/div/div[2]/h4/a').text
         except:
             pass
 
@@ -134,17 +127,18 @@ def extract_programmers_jobs(page_num):
             pass
         #4. 데이터를 딕셔너리 형태로 저장한다.
         job_data = {
-                'name': name,
-                'response_speed': response_speed,
-                'company_link': company_link,
-                'company_name': company_name,
-                'position': position,
-                'end_date': end_date,
+                'title': title,
+                #'response_speed': response_speed,
+                #'company_link': company_link,
+                'company': company,
+                #'position': position,
+                #'end_date': end_date,
                 'job_type': job_type,
-                'experience': experience,
-                'salary': salary,
+                #'experience': experience,
+                #'salary': salary,
                 'location': location,
-                'tech_stacks': tech_stacks
+                #'tech_stacks': tech_stacks
+                'link': post_url
             }
         results.append(job_data)
     
